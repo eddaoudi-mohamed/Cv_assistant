@@ -36,6 +36,16 @@ export interface GeneratedCV {
   summary: string;
   bullets: string[];
   input: CVInput;
+  photoUrl?: string;
+  recommendations?: JobRecommendation[];
+}
+
+export interface JobRecommendation {
+  title: string;
+  level: "junior" | "mid" | "senior";
+  matchScore: number;
+  reason: string;
+  keywords: string[];
 }
 
 export interface GeneratedLetter {
