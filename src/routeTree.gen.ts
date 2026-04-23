@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PhotoRouteImport } from './routes/photo'
 import { Route as LetterRouteImport } from './routes/letter'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CvRouteImport } from './routes/cv'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const PhotoRoute = PhotoRouteImport.update({
 const LetterRoute = LetterRouteImport.update({
   id: '/letter',
   path: '/letter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CvRoute = CvRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cv': typeof CvRoute
+  '/dashboard': typeof DashboardRoute
   '/letter': typeof LetterRoute
   '/photo': typeof PhotoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cv': typeof CvRoute
+  '/dashboard': typeof DashboardRoute
   '/letter': typeof LetterRoute
   '/photo': typeof PhotoRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cv': typeof CvRoute
+  '/dashboard': typeof DashboardRoute
   '/letter': typeof LetterRoute
   '/photo': typeof PhotoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cv' | '/letter' | '/photo'
+  fullPaths: '/' | '/cv' | '/dashboard' | '/letter' | '/photo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cv' | '/letter' | '/photo'
-  id: '__root__' | '/' | '/cv' | '/letter' | '/photo'
+  to: '/' | '/cv' | '/dashboard' | '/letter' | '/photo'
+  id: '__root__' | '/' | '/cv' | '/dashboard' | '/letter' | '/photo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CvRoute: typeof CvRoute
+  DashboardRoute: typeof DashboardRoute
   LetterRoute: typeof LetterRoute
   PhotoRoute: typeof PhotoRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/letter'
       fullPath: '/letter'
       preLoaderRoute: typeof LetterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cv': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CvRoute: CvRoute,
+  DashboardRoute: DashboardRoute,
   LetterRoute: LetterRoute,
   PhotoRoute: PhotoRoute,
 }
