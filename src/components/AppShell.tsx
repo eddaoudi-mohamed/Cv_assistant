@@ -1,10 +1,11 @@
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { FileText, Mail, Camera, LayoutGrid, Sparkles, Globe } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
-export function AppShell() {
+export function AppShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useI18n();
   const loc = useLocation();
 
@@ -79,7 +80,7 @@ export function AppShell() {
           </Button>
         </header>
         <main className="flex-1 min-w-0">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>
