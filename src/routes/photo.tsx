@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Upload, Sparkles, Loader2, Download } from "lucide-react";
-import { generatePhoto, type PhotoInput } from "@/lib/api";
+import { generatePhoto, setActivePhoto, getActivePhoto, type PhotoInput } from "@/lib/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/photo")({
@@ -22,7 +22,7 @@ function PhotoPage() {
   const { t } = useI18n();
   const [src, setSrc] = useState<string | null>(null);
   const [style, setStyle] = useState<PhotoInput["style"]>("corporate");
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(() => getActivePhoto());
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,7 +38,8 @@ function PhotoPage() {
     try {
       const photo = await generatePhoto({ imageDataUrl: src, style });
       setResult(photo.url);
-      toast.success("Photo generated");
+      setActivePhoto(photo.url);
+      toast.success(t("photo.attached"));
     } catch {
       toast.error("Generation failed");
     } finally {

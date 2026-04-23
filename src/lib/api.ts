@@ -11,10 +11,23 @@ import type {
   GeneratedLetter,
   GeneratedPhoto,
   DocItem,
+  JobRecommendation,
 } from "./types";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL as string | undefined;
 const STORAGE_KEY = "jobforge.docs";
+const ACTIVE_PHOTO_KEY = "jobforge.activePhoto";
+
+export function getActivePhoto(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACTIVE_PHOTO_KEY);
+}
+
+export function setActivePhoto(url: string | null) {
+  if (typeof window === "undefined") return;
+  if (url) localStorage.setItem(ACTIVE_PHOTO_KEY, url);
+  else localStorage.removeItem(ACTIVE_PHOTO_KEY);
+}
 
 function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -60,6 +73,7 @@ export async function generateCV(input: CVInput): Promise<GeneratedCV> {
 
   await delay(1400);
   const score = 72 + Math.floor(Math.random() * 22);
+  const recommendations = mockRecommendations(input);
   const cv: GeneratedCV = {
     id: uid(),
     title: input.targetJob || "Resume",
@@ -71,9 +85,50 @@ export async function generateCV(input: CVInput): Promise<GeneratedCV> {
       e.description ? `Highlight: ${e.description.slice(0, 120)}` : `Owned key initiatives for ${e.company}.`,
     ]),
     input,
+    photoUrl: getActivePhoto() ?? undefined,
+    recommendations,
   };
   pushDoc({ kind: "cv", ...cv });
   return cv;
+}
+
+export async function recommendJobs(input: CVInput): Promise<JobRecommendation[]> {
+  if (API_URL) {
+    const res = await fetch(`${API_URL}/cv/recommend-jobs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) throw new Error("Recommendation failed");
+    return res.json();
+  }
+  await delay(700);
+  return mockRecommendations(input);
+}
+
+function mockRecommendations(input: CVInput): JobRecommendation[] {
+  const target = input.targetJob || "Professional";
+  const skills = input.skills.length ? input.skills : ["Communication", "Teamwork"];
+  const yearsApprox = input.experiences.length;
+  const level: JobRecommendation["level"] =
+    yearsApprox >= 4 ? "senior" : yearsApprox >= 2 ? "mid" : "junior";
+  const variants = [
+    { suffix: "", boost: 12 },
+    { suffix: " Lead", boost: 6 },
+    { suffix: " Specialist", boost: 4 },
+    { suffix: " Consultant", boost: 2 },
+    { suffix: " Manager", boost: 0 },
+  ];
+  return variants.map((v, i) => {
+    const score = Math.max(58, Math.min(97, 78 + v.boost - i * 3 + Math.floor(Math.random() * 5)));
+    return {
+      title: `${target}${v.suffix}`.trim(),
+      level,
+      matchScore: score,
+      reason: `Strong fit on ${skills.slice(0, 3).join(", ")} with ${yearsApprox} relevant experience${yearsApprox > 1 ? "s" : ""}.`,
+      keywords: skills.slice(0, 5),
+    };
+  });
 }
 
 export interface LetterInput {

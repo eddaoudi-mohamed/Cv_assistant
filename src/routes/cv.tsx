@@ -1,15 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useI18n } from "@/lib/i18n";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Download, Sparkles, Upload, Loader2 } from "lucide-react";
-import { generateCV } from "@/lib/api";
+import { Plus, Trash2, Download, Sparkles, Upload, Loader2, Camera, Briefcase, Target } from "lucide-react";
+import { generateCV, getActivePhoto } from "@/lib/api";
 import type { CVInput, GeneratedCV, Experience, Education } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -38,6 +38,14 @@ function CVBuilder() {
   const [skillDraft, setSkillDraft] = useState("");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GeneratedCV | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPhotoUrl(getActivePhoto());
+    const onStorage = () => setPhotoUrl(getActivePhoto());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const updatePersonal = <K extends keyof CVInput["personal"]>(k: K, v: string) =>
     setInput((p) => ({ ...p, personal: { ...p.personal, [k]: v } }));
