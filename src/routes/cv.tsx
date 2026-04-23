@@ -203,12 +203,35 @@ function CVBuilder() {
             </div>
           ) : (
             <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold">{input.personal.fullName || "—"}</h3>
-                  <p className="text-sm text-muted-foreground">{input.targetJob}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  {photoUrl ? (
+                    <img
+                      src={photoUrl}
+                      alt="Pro portrait"
+                      className="h-20 w-20 rounded-full object-cover border-2 border-primary/40 shrink-0"
+                      style={{ boxShadow: "var(--shadow-glow)" }}
+                    />
+                  ) : (
+                    <Link
+                      to="/photo"
+                      className="h-20 w-20 rounded-full border-2 border-dashed border-border grid place-items-center shrink-0 text-muted-foreground hover:border-primary hover:text-primary transition"
+                      title={t("cv.photo.missing")}
+                    >
+                      <Camera className="h-6 w-6" />
+                    </Link>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="text-2xl font-bold truncate">{input.personal.fullName || "—"}</h3>
+                    <p className="text-sm text-muted-foreground truncate">{input.targetJob}</p>
+                    {!photoUrl && (
+                      <Link to="/photo" className="text-xs text-primary hover:underline">
+                        {t("cv.photo.cta")} →
+                      </Link>
+                    )}
+                  </div>
                 </div>
-                <div className="text-center">
+                <div className="text-center shrink-0">
                   <div className="text-3xl font-bold text-primary">{result.atsScore}</div>
                   <div className="text-xs text-muted-foreground">{t("dash.score")}</div>
                 </div>
@@ -227,6 +250,49 @@ function CVBuilder() {
                   <Badge key={i} variant="outline">{s}</Badge>
                 ))}
               </div>
+
+              {result.recommendations && result.recommendations.length > 0 && (
+                <div className="pt-4 mt-4 border-t border-border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                    <h4 className="font-semibold text-sm">{t("reco.title")}</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {result.recommendations.map((r, i) => (
+                      <li
+                        key={i}
+                        className="rounded-lg border border-border p-3 hover:border-primary/50 transition"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-sm">{r.title}</span>
+                              <Badge variant="secondary" className="text-[10px]">
+                                {t(`reco.level.${r.level}` as any)}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">{r.reason}</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {r.keywords.slice(0, 4).map((k, j) => (
+                                <span key={j} className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground">
+                                  {k}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-center shrink-0">
+                            <div className="text-xl font-bold text-primary leading-none">{r.matchScore}%</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1 justify-center">
+                              <Target className="h-3 w-3" />
+                              {t("reco.match")}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </Card>
