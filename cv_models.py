@@ -39,7 +39,3 @@ class CVProfile(BaseModel):
     projects: List[Project]
     skills: List[Skill]
     certifications: Optional[List[str]] = None
-    
-class CandidateMeta(BaseModel):
-    address: Optional[str]
-    location: Optional[str]
