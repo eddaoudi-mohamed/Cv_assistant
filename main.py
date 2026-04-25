@@ -7,11 +7,13 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-
-from cv_models import CVProfile,CandidateMeta                     
-from services.job_parser import JobParser                 
-from services.letter_generator import LetterGenerator    
-from services.pdf_generator import save_pdf         
+# ---------------------------------------------------------------------------
+# Internal imports — reuse existing modules, no rewrites
+# ---------------------------------------------------------------------------
+from cv_models import CVProfile                           # Pydantic models (unchanged)
+from services.job_parser import JobParser                 # Gemini: extract company info
+from services.letter_generator import LetterGenerator     # Gemini: write cover letter
+from services.pdf_generator import save_pdf               # ReportLab: render PDF
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -46,10 +48,30 @@ job_parser = JobParser()
 OUTPUTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
+
+# ---------------------------------------------------------------------------
+# Request schema
+#
+# We import and *compose* CVProfile rather than redefine any of its fields.
+# Two extra top-level fields (address, location) are needed by the PDF
+# renderer but are absent from CVProfile — they are added here.
+# ---------------------------------------------------------------------------
 class GeneratePDFRequest(BaseModel):
+    """
+    Full request payload for POST /generate-pdf.
+    Fields
+    ------
+    cv_profile      : Structured CV data (see cv_models.CVProfile).
+    job_description : Raw job posting text — parsed by JobParser to extract
+                      company info, and fed to LetterGenerator.
+    address         : Candidate's mailing address printed on the PDF header.
+    location        : Candidate's city / country printed on the PDF header.
+    """
+
     cv_profile: CVProfile
-    meta: CandidateMeta
     job_description: str
+    address: Optional[str] = ""
+    location: Optional[str] = ""
 
     model_config = {
         "json_schema_extra": {
@@ -97,10 +119,7 @@ class GeneratePDFRequest(BaseModel):
                     ],
                     "certifications": ["Google Data Analytics Certificate"],
                 },
-                "job_description": (
-                    "We are hiring a Data Scientist at TechNova Solutions "
-                    "(Paris, France). Requirements: Python, ML, SQL, 2+ years exp."
-                ),
+                "job_description": "We are hiring a Data Scientist at TechNova Solutions (Paris, France). Requirements: Python, ML, SQL, 2+ years exp.",
                 "address": "12 Avenue Hassan II, Rabat, Morocco",
                 "location": "Rabat, Morocco",
             }
@@ -145,7 +164,6 @@ async def generate_pdf(
 ) -> FileResponse:
     """
     **Full pipeline — one request, one PDF returned.**
-
     | Step | Action |
     |------|--------|
     | 1 | **Parse** `job_description` → company name, position, location |
@@ -195,10 +213,17 @@ async def generate_pdf(
         #          and render the PDF into /outputs
         # ------------------------------------------------------------------
         logger.info("▶ Step 3/3 — Rendering PDF …")
+        profile_for_pdf = {
+            "name":     payload.cv_profile.name,
+            "email":    payload.cv_profile.email,
+            "phone":    payload.cv_profile.phone or "",
+            # address / location are top-level request fields (not in CVProfile)
+            "address":  payload.address or "",
+            "location": payload.location or "",
+        }
 
         pdf_path = save_pdf(
-            profile=payload.cv_profile.model_dump(),
-            meta=payload.meta.model_dump(),
+            profile=profile_for_pdf,
             company=company,
             letter_body=letter_body,
             filename=unique_filename,
@@ -245,3 +270,5 @@ async def generate_pdf(
 @app.get("/health", include_in_schema=False)
 async def health() -> dict:
     return {"status": "ok"}
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
