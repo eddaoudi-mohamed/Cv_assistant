@@ -19,10 +19,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex w-full bg-background text-foreground">
-      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-sidebar p-4 gap-2">
+      {/* ── Fixed sidebar ── */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col border-r border-border bg-sidebar p-4 gap-2 z-20 overflow-y-auto">
         <Link to="/" className="flex items-center gap-2 px-2 py-3 mb-2">
           <div
-            className="h-9 w-9 rounded-xl grid place-items-center"
+            className="h-9 w-9 rounded-xl grid place-items-center shrink-0"
             style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
           >
             <Sparkles className="h-5 w-5 text-primary-foreground" />
@@ -63,8 +64,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center justify-between border-b border-border px-4 py-3">
+      {/* ── Main content — offset by sidebar width on md+ ── */}
+      <div className="flex-1 flex flex-col min-w-0 md:ml-64">
+        {/* Mobile top bar */}
+        <header className="md:hidden flex items-center justify-between border-b border-border px-4 py-3 sticky top-0 bg-background z-10">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <div
               className="h-7 w-7 rounded-lg grid place-items-center"

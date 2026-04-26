@@ -6,4 +6,18 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+export default defineConfig({
+  vite: {
+    server: {
+      proxy: {
+        // All /api/* requests are forwarded to the backend, /api prefix stripped.
+        // This eliminates CORS entirely — the browser stays on the same origin.
+        "/api": {
+          target: "http://localhost:8000",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+      },
+    },
+  },
+});
