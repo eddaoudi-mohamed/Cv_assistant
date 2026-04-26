@@ -10,10 +10,10 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 # Internal imports — reuse existing modules, no rewrites
 # ---------------------------------------------------------------------------
-from cv_models import CVProfile                           # Pydantic models (unchanged)
-from services.job_parser import JobParser                 # Gemini: extract company info
-from services.letter_generator import LetterGenerator     # Gemini: write cover letter
-from services.pdf_generator import save_pdf               # ReportLab: render PDF
+from Backend.cv_models import CVProfile                           # Pydantic models (unchanged)
+from Backend.services.job_parser import JobParser                 # Gemini: extract company info
+from Backend.services.letter_generator import LetterGenerator     # Gemini: write cover letter
+from Backend.services.pdf_generator import save_pdf               # ReportLab: render PDF
 
 # ---------------------------------------------------------------------------
 # Logging
